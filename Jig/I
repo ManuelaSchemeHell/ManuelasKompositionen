@@ -1,0 +1,205 @@
+\version "2.18.2"
+
+\header{
+  title = "Manuelas Jig"
+  composer = "componiert von Manuela 2016"
+  subtitle = "Tune of the Month April 2016"
+  subsubtitle = "http://www.musiker-board.de/threads/tdm-04-2016-manuelas-jig.638068/"
+
+}
+\language "deutsch"
+FootLeft = #(string-append "" )
+FootCenter = #(string-append "")
+FootRight = #(string-append "gesetzt mit LILYPOND " (lilypond-version) " am " (strftime "%d.%m.%Y %H:%M:%S" (localtime (current-time))))
+
+\paper {
+  #(set-paper-size "a4")
+  oddFooterMarkup = \markup \fill-line {
+    \abs-fontsize #9 { \FootLeft }
+    % \abs-fontsize #7.0 { \italic { \FootCenter } }
+    \abs-fontsize #9 { \FootRight }
+  }
+  top-margin = 1.5\in
+
+  left-margin = #20
+  right-margin = #20
+}
+
+\layout {
+  indent = #10
+  ragged-last-bottom = ##f
+  ragged-last = ##f
+  ragged-bottom = ##f
+  %line-width = #190
+
+  \context {
+    \Staff
+    % weglassen der kleinen 8en, falls Notenschlüssel bass^8 etc.
+    \omit ClefModifier
+    % Takte am Zeilenende nicht anzeigen
+    %\override TimeSignature.break-visibility = #all-invisible
+    %Notenschlüssel nur am Zeilenanfang
+    %\override Clef.break-visibility = #begin-of-line-visible
+    %\remove "Bar_engraver"
+    %\override TimeSignature.stencil = ##f
+    %\remove "Clef_engraver"
+  }
+
+  \context {
+    \Score
+    %\remove "Bar_number_engraver" % Taktnummerierung
+    %\override Score.BarNumber.break-visibility = #'#(#t #t #f)
+    %\override barNumberVisibility = #(every-nth-bar-number-visible 2) %barNumberVisibility = #all-bar-numbers-visible
+    \override NonMusicalPaperColumn.line-break-permission = ##f
+    \override NonMusicalPaperColumn.page-break-permission = ##f
+  }
+}
+
+inst =
+#(define-music-function
+  (parser location string)
+  (string?)
+  #{ <>^\markup \bold \box #string #})
+
+#(define ((chord-name->german-markup-text-alteration B-instead-of-Bb) pitch lowercase?)
+
+   (define (pitch-alteration-semitones pitch)
+     (inexact->exact (round (* (ly:pitch-alteration pitch) 2))))
+
+   (define (conditional-string-downcase str condition)
+     (if condition
+         (string-downcase str)
+         str))
+
+   (let* ((name (ly:pitch-notename pitch))
+          (alt-semitones  (pitch-alteration-semitones pitch))
+          (n-a (if (member (cons name alt-semitones) `((6 . -1) (6 . -1)))
+                   (cons 7 (+ (if B-instead-of-Bb 1 1) alt-semitones))
+                   (cons name alt-semitones))))
+     (make-line-markup
+      (list
+       (make-simple-markup
+        (conditional-string-downcase
+         (vector-ref #("C" "D" "E" "F" "G" "A" "H" "B") (car n-a))
+         lowercase?))
+       (let ((alteration (/ (cdr n-a) 2)))
+         (cond
+          ((and (equal? lowercase? #f) (= alteration FLAT) (= (car n-a) 7)) (make-simple-markup ""))
+          ((and (= alteration FLAT) (or (= (car n-a) 5) (= (car n-a) 2) )) (make-simple-markup "s"))
+          ((= alteration FLAT) (make-simple-markup "es"))
+          ((and (= alteration DOUBLE-FLAT) (or (= (car n-a) 5)(= (car n-a) 2) )) (make-simple-markup "ses"))
+          ((= alteration DOUBLE-FLAT) (make-simple-markup "eses"))
+          ((= alteration SHARP) (make-simple-markup "is"))
+          ((= alteration DOUBLE-SHARP) (make-simple-markup "isis"))
+          (else empty-markup)))))))
+
+#(define germanChords (chord-name->german-markup-text-alteration #t))
+
+myLayoutTwo =
+\layout {
+  \context {
+    \ChordNames
+    chordNameLowercaseMinor = ##f
+    chordRootNamer = #germanChords
+    chordNoteNamer = #note-name->german-markup
+  }
+}
+
+Struktur = {
+  \override Score.BarNumber.break-visibility = #end-of-line-invisible
+  \set Score.barNumberVisibility = #(every-nth-bar-number-visible 1)
+  \partial 8 s8
+  s2. * 4 \break
+  s2. * 5 \break
+  s2. * 4 \break
+
+  s2. * 3
+
+  s2. s2 \mark \markup { "Dal" \musicglyph #"scripts.segno" "al Fine" }
+
+}
+
+RH = \relative c' {
+  \clef "treble" \key c \major \time 6/8
+  \set Timing.beamExceptions = #'()
+  \set Timing.baseMoment = #(ly:make-moment 1/8)
+  \set Staff.beatStructure = #'(3 3) % abhängig vom Takt
+  \tempo 4=108-152
+  \partial 8 h'8
+  \repeat volta 2 {
+    a^\markup { \musicglyph #"scripts.segno" } h a e4 a8 c4 c8 a4 e8
+    a h a  e4 a8
+    h4 h8 g a h a h a e4 a8 c4 c8 a4 a8
+    h a h c h g
+  } \alternative { { a4 a8 a4 c8  } { a4 a8 a4^"Fine" c8 } }
+  e4 e8 c4 c8 e d e a h a
+  d,4 d8 h4 g8 d' h g h c h
+  c4 c8 a4 c8
+
+  e d e g e c
+  h a h d h g
+  c4 a8 a4 g8 a4. r8 c8
+  % < f^4 a^2 >4.^\markup { \musicglyph #"scripts.segno" }
+
+  \bar "|."
+}
+
+LH =  {
+  \clef "bass" \key c \major
+  \partial 8 r8
+
+  \repeat unfold 3 { a,8 r < a c' e' > e,8 r < a c' e' > }
+  g, r < g h d' > d, r < g h d' >
+  \repeat unfold 2 { a,8 r < a c' e' > e,8 r < a c' e' > }
+  d, r < g h d' > g, r < g h d' >
+  \repeat unfold 2 { a,8 r < a c' e' > e,8 r < a c' e' > }
+  a,8 r < a c' e' > e,8 r < a c' e' >
+  a,8 r < a c' e' > e,8 r < a c' e' >
+  \repeat unfold 2 { g, r < g h d' > d, r < g h d' > }
+  \repeat unfold 2 { a,8 r < a c' e' > e,8 r < a c' e' > }
+  g, r < g h d' > d, r < g h d' >
+  a,8 r < a c' e' > e,8 r < a c' e' > a,8 r < a c' e' > e,8 r
+}
+
+% hier kommen die Akkordbezeichnungen
+AK = \chordmode {
+  \set chordChanges = ##f
+  \partial 8 s8
+  a2.:m
+  a:m a:m g
+  a:m a:m g/d a:m a:m
+  a2.:m a2.:m  g g  a:m a:m  g a:m a4:m
+}
+
+\score
+
+{
+  \layout { \myLayoutTwo }
+
+  \new PianoStaff
+  <<
+    \set PianoStaff.instrumentName = #"Acc."
+    \new Staff = "Discant"
+    <<
+      \new Voice = "upper" {
+
+        \RH
+      }
+      %\new Lyrics \lyricsto "upper" { \StropheI }
+      %\new Lyrics \lyricsto "upper" { \StropheII }
+      \new Voice
+      \Struktur
+      %\new Dynamics \DY
+      \new ChordNames
+      \AK
+    >>
+    <<
+      \new Staff = "Bass" \LH
+
+    >>
+  >>
+  \header {
+     piece = \markup { \fontsize #2 \bold "Jig" }
+     opus = \markup { \italic "lebhaft" }
+  }
+}
