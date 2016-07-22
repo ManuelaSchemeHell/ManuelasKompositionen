@@ -1,0 +1,154 @@
+\version "2.19.37"
+\language "deutsch"
+
+\include "Papier+Layout.ly"
+\include "myScheme.ily"
+
+%% wenn erforderlich linken Abstand ändern
+\paper {
+  %% hier für den Fall, dass Änderungen erforderlich sind
+  %%l eft-margin = #15
+  %% top-margin = #20
+  %% system-system-spacing.basic-distance = #8
+  %min-systems-per-page = #6
+
+}
+
+AK = \chordmode {
+  \set chordChanges = ##f
+  c1:m7 as:7 f:m9 as
+  c1:m7 as:7 f:m9 as
+  c1:m7 as:7 f:m9 as
+}
+
+Gesang = \relative c' {
+  \clef "treble" \key c \major \time 4/4
+  \set Timing.beamExceptions = #'()
+  \set Timing.baseMoment = #(ly:make-moment 1/8)
+  \set Staff.beatStructure = #'(2 2 2 2 ) % abhängig vom Takt
+  \set Staff.midiInstrument = #"acoustic grand"
+  \autoBeamOff
+  \tempo 4=120
+  \set Score.markFormatter = #format-mark-box-alphabet
+  \set midiInstrument = #"choir aahs"
+
+  \bar "||"
+}
+
+global = {
+  \key es \major
+  \numericTimeSignature
+  \time 4/4
+}
+
+lmy={ c4 c c8. c16 c8. c16 }
+lny={ c8. c16 c4 }
+loy={ c8. c16~ c8 c~ c4 c }
+rmy={ c8. c16 c8 c8 c16 c8. c8 c }
+rny={ c8. c16 c c c c }
+TaktIr= { c16 es c es b' es, b' es, }
+TaktIl= { c4 b' c,8. g'16 b8. es,16 }
+
+right = \relative c' {
+  \global
+  \repeat unfold 4 { \TaktIr }
+  c es c es g es g es c es c es g es g es
+  c es c es as es as es c es c as' g c, es c
+  c es c8 es d16 es~ es8 d16 es~ es8 d16 c~
+  c4 b'16 es, b' es, c es c8 es es16 es~
+  es8 c g'16 es g es c16 es8 c16 es8 es16 c~
+  c4 r r2
+  c16 es c8 es16 es d es~ es es f g~ g8 es
+  c4 b'16 es, b' es, c es c es d8 es16 es~
+  es8 c g'16 es g es c es c es \tuplet 3/2 { es8 es es~ }
+  es16 es f c as' es as es c es c as' g c, es c
+  \changePitch \rmy {
+    < es, as c > < f~ as~ d~ > < f as d > < g~ as~ es'~ > < g as es' > < as c f > < as c es > d
+    < f, as c > < g~ as~ d~ > q < as~ c~ es~ > q < as c f > < as c es > < as c d >
+    < es as c > < es~ as~ d~ > q < es~ as~ es'~ >
+  }
+  q8 < es as b >4 < f~ b~ d~ >8 q2.~ q8. es'16
+  \changePitch \rny {
+    < c es b' > < c~ es~ g~ > q c es c
+    < c es b' > < c~ es~ g~ > q c es c
+  }
+  < b es g >8 g'16 < b, es g >~ q8 f'16 < c es as>~ q8 < c es g> < c es > < c es b' >~
+  q < c es g >4 < c es b' >8~ q8 < c es g >4.
+  < b es g>8 g'16 < b, es g >16~ q8 f'16 < c es as >~ q8 < c es g > < c es>16 f8 < c es g>16~
+  q8 < c es b'>~ q16 q8.
+  \tuplet 3/2 { <es' g>8[ < d f > < c es >] }
+  \tuplet 3/2 { < as c >[ < g b > < f as>] }
+  < es as c>8 b'16 < es, g b>~q8 g16 < b, es g>~ q < b d f >8.~ q16 es f g
+  \time 2/4
+  < c, f as >8. < b es g>16~ q8
+  <<
+    {
+      < as c es>~ \time 4/4
+      es'2~ es8. es16 es8 d16 es_~ es es c es
+    } \\
+    {
+      s8
+      < as, c >1
+    }
+
+  >>
+  b'16 es, b' es, c es c es b' es, b' es,
+  c es c es b' es, b' es, c es c es c8 d16 es~
+  es es c es g es g es c es c es g es g es
+  c es c es as es as es c es c as' g c, es c
+}
+
+left = \relative c {
+  \global
+  \set Timing.beamExceptions = #'()
+  \set Timing.baseMoment = #(ly:make-moment 1/4)
+  \set Staff.beatStructure = #'(2 2 ) % abhängig vom Takt
+  \repeat unfold 3
+  {
+    \changePitch \lmy { c b' c, g' b es, }
+    \changePitch \lny
+    {
+      as, es' b' as, es' b'
+      f, c' as' f, c' as'
+      as, es' as
+    }
+    as,2
+  }
+  \set Staff.beatStructure = #'(1 1 1 1 ) % abhängig vom Takt
+
+  \changePitch \loy {
+    as as as as as as
+    f f f f f f
+    as as as as
+  }
+  as4. b8~ b1
+  c2 as es f4. c'8 ~
+  c4. as8~ as2
+  es2 f c' as
+  as8. g16~ g8. b16~ b b8.~ b4
+  f8. es16~ es8 as~ as1
+  \changePitch \lmy { c b' c, g' b es, }
+  \changePitch \lny
+    {
+      as, es' b' as, es' b'
+      f, c' as' f, c' as'
+      as, es' as
+    }
+    as,2
+}
+
+\score {
+  \new PianoStaff \with {
+    instrumentName = "Piano"
+    shortInstrumentName = ""
+  } <<
+    \new Staff = "right"
+    <<
+
+      \context ChordNames \AK
+      \context Voice \right
+    >>
+    \new Staff = "left" { \clef bass \left }
+  >>
+  \layout { }
+}
